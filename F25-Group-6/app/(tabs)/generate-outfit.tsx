@@ -1,13 +1,20 @@
-import { StyleSheet } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Stack } from 'expo-router';
+import { StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function GenerateNewOutfitScreen() {
+export default function GenerateOutfitsScreen() {
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="title">Generate New Outfit</ThemedText>
-      {/* Add form here */}
-    </ThemedView>
+    <>
+      <Stack.Screen options={{ title: 'Generate Outfits' }} />
+      <SafeAreaView style={[styles.container, {backgroundColor: '#FFFFFF'}]} edges={['top', 'left', 'right']}>
+        <ThemedView>
+          <ThemedText type="title">Let's create your outfit!</ThemedText>
+          {/* Add outfit list here */}
+        </ThemedView>
+      </SafeAreaView>
+    </>
   );
 }
 

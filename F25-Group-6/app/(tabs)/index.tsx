@@ -1,11 +1,10 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 
-import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -28,7 +27,7 @@ export default function HomeScreen() {
         style={styles.addButton}
         onPress={() => router.push('/add-clothing')}
       >
-        <ThemedText style={styles.addButtonText}>+ Add clothing item</ThemedText>
+        <ThemedText style={styles.addButtonText}>👕 Add clothing item</ThemedText>
       </TouchableOpacity>
 
       {/* View Saved Outfits Button */}
@@ -46,9 +45,6 @@ export default function HomeScreen() {
       >
         <ThemedText style={styles.generateButtonText}>✨ Generate New Outfit!</ThemedText>
       </TouchableOpacity>
-
-
-
 
     </ParallaxScrollView>
   );

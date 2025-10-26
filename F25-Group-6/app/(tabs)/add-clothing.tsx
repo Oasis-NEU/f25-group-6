@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Pressable, Alert, ScrollView, Text } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Select from '@rn-primitives/select';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import * as Select from '@rn-primitives/select';
+import React, { useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const WhatIsIt = [
   { label: 'T-Shirt', value: 'tshirt' },
