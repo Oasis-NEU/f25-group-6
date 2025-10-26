@@ -11,3 +11,13 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+//response.send(status) is now a function that takes the JSON object as the argument.
+
+app.get(“/status”, (request, response) => {
+   const status = {
+      “Status”: “Running”
+   };
+   
+   response.send(status);
+});
