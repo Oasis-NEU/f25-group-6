@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@rn-primitives/select": "^1.2.0"
+  }
+}
