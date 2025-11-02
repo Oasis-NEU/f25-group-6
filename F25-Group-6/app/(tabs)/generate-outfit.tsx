@@ -64,7 +64,7 @@ export default function GenerateOutfitsScreen() {
 
     // Navigate to generated-outfit screen with parameters
     router.push({
-      pathname: '/generated-outfit',
+      pathname: '/outside/generated-outfit',
       params: { 
         vibe: vibe.value, 
         weather: weather.value 

@@ -1,20 +1,20 @@
-import React, { useState, useRef } from 'react';
+import { useRouter } from 'expo-router';
+import React, { useRef, useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  Pressable,
   Alert,
-  ScrollView,
-  Text,
   Image,
   Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 
-import * as ImagePicker from 'expo-image-picker'; 
-import * as Select from '@rn-primitives/select';
 import type { TriggerRef } from '@rn-primitives/select';
+import * as Select from '@rn-primitives/select';
+import * as ImagePicker from 'expo-image-picker';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
