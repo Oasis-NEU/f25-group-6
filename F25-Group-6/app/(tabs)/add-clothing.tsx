@@ -4,6 +4,7 @@ import {
   Alert,
   Image,
   Platform,
+  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,16 +13,18 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import type { TriggerRef } from '@rn-primitives/select';
+import * as ImagePicker from 'expo-image-picker'; 
+import * as FileSystem from 'expo-file-system';
 import * as Select from '@rn-primitives/select';
-import * as ImagePicker from 'expo-image-picker';
+import type { TriggerRef } from '@rn-primitives/select';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { supabase } from '@/lib/supabase';
 
 type Option = { value: string; label: string };
 
-const WhatIsIt = [
+const WhatIsIt: Option[] = [
   { label: 'T-Shirt', value: 'tshirt' },
   { label: 'Jeans', value: 'jeans' },
   { label: 'Dress', value: 'dress' },
@@ -49,7 +52,6 @@ const WhatIsTheVibe: Option[] = [
 ];
 
 export default function AddClothingScreen() {
-  // router for back button
   const router = useRouter();
 
   // dropdown states
@@ -59,8 +61,10 @@ export default function AddClothingScreen() {
 
   // photo state
   const [photoUri, setPhotoUri] = useState<string | undefined>();
+  
+  // loading state
+  const [isSaving, setIsSaving] = useState(false);
 
-  // refs for the Select workaround
   const typeRef = useRef<TriggerRef>(null);
   const colorRef = useRef<TriggerRef>(null);
   const vibeRef = useRef<TriggerRef>(null);
@@ -74,7 +78,7 @@ export default function AddClothingScreen() {
   };
 
   const handleTakePhoto = async () => {
-    // ask for camera permission
+    // camera permission
     const camPerm = await ImagePicker.requestCameraPermissionsAsync();
     if (!camPerm.granted) {
       Alert.alert(
@@ -84,18 +88,46 @@ export default function AddClothingScreen() {
       return;
     }
 
+    // Open camera
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ['images'], 
       allowsEditing: true,
       quality: 1,
     });
 
+    // Save temporary photo URI to state. locally stored on device
     if (!result.canceled && result.assets && result.assets.length > 0) {
       setPhotoUri(result.assets[0].uri);
     }
   };
 
-  const save = () => {
+  // Helper function to upload photo to Supabase Storage
+  const uploadPhoto = async (uri: string): Promise<string> => {
+    // Get user id
+    const { data: { user }, error: uErr } = await supabase.auth.getUser()
+    if (uErr || !user) throw new Error('Not authenticated')
+  
+    // Turn the local file into a Blob
+    const res = await fetch(uri)
+    const blob = await res.blob() 
+  
+    // Upload to Storage (bucket name must exist in Supabase)
+    const fileName = `${Date.now()}.jpg`
+    const path = `${user.id}/${fileName}`
+  
+    const { error: upErr } = await supabase
+      .storage
+      .from('clothing-photos')   // In this bucket
+      .upload(path, blob, { contentType: 'image/jpeg', upsert: false })
+  
+    if (upErr) throw upErr
+  
+    // Get a public URL (or use signed URLs if bucket is private)
+    const { data } = supabase.storage.from('clothing-photos').getPublicUrl(path)
+    return data.publicUrl
+  }
+
+  const save = async () => {
     if (!photoUri) {
       Alert.alert('Missing photo', 'Please take a picture of the item.');
       return;
@@ -105,11 +137,57 @@ export default function AddClothingScreen() {
       return;
     }
 
-    // TODO: actually save to closet data store
-    Alert.alert(
-      'Added to Closet!',
-      `Saved:\n${type.label} · ${color.label} · ${vibe.label}`
-    );
+    setIsSaving(true);
+
+    try {
+      // Upload photo to Supabase Storage
+      console.log('Uploading photo from:', photoUri);
+      const photoUrl = await uploadPhoto(photoUri);
+      console.log('Photo uploaded successfully:', photoUrl);
+      
+      //Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      // Save item metadata and photo URL to database
+      const { data, error } = await supabase
+        .from('clothing_items')
+        .insert({
+          user_id: user.id,
+          type: type.value,
+          type_label: type.label,
+          color: color.value,
+          color_label: color.label,
+          vibe: vibe.value,
+          vibe_label: vibe.label,
+          photo_url: photoUrl,
+        })
+        .select()
+        .single();
+        
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+      
+      console.log('Item saved to database:', data);
+      
+      // Shows its been added
+      Alert.alert(
+        'Added to Closet!',
+        `Saved:\n${type.label} · ${color.label} · ${vibe.label}`,
+        [{ text: 'OK', onPress: () => router.back() }]
+      );
+      
+    } catch (error) {
+      console.error('Error saving item:', error);
+      Alert.alert(
+        'Error', 
+        'Failed to save item. Please check your connection and try again.'
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -118,7 +196,7 @@ export default function AddClothingScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* HEADER ROW: back + title */}
+        {/* HEADER ROW */}
         <View style={styles.headerRow}>
           <Pressable
             style={styles.backButton}
@@ -170,7 +248,9 @@ export default function AddClothingScreen() {
               onTouchStart={() => typeRef.current?.open()}
             >
               <View style={styles.triggerContent}>
-                <Select.Value placeholder="Select item type" />
+                <Select.Value placeholder="Select item type">
+                  {type?.label}
+                </Select.Value>
                 <Text style={styles.arrow}>▼</Text>
               </View>
             </Select.Trigger>
@@ -214,7 +294,9 @@ export default function AddClothingScreen() {
               onTouchStart={() => colorRef.current?.open()}
             >
               <View style={styles.triggerContent}>
-                <Select.Value placeholder="Select color" />
+                <Select.Value placeholder="Select color">
+                  {color?.label}
+                </Select.Value>
                 <Text style={styles.arrow}>▼</Text>
               </View>
             </Select.Trigger>
@@ -258,7 +340,9 @@ export default function AddClothingScreen() {
               onTouchStart={() => vibeRef.current?.open()}
             >
               <View style={styles.triggerContent}>
-                <Select.Value placeholder="Select vibe" />
+                <Select.Value placeholder="Select vibe">
+                  {vibe?.label}
+                </Select.Value>
                 <Text style={styles.arrow}>▼</Text>
               </View>
             </Select.Trigger>
@@ -292,8 +376,16 @@ export default function AddClothingScreen() {
           </Select.Root>
         </View>
 
-        <Pressable style={styles.saveButton} onPress={save}>
-          <Text style={styles.saveButtonText}>Add to Closet</Text>
+        <Pressable 
+          style={[styles.saveButton, isSaving && styles.saveButtonDisabled]} 
+          onPress={save}
+          disabled={isSaving}
+        >
+          {isSaving ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.saveButtonText}>Add to Closet</Text>
+          )}
         </Pressable>
       </ScrollView>
     </ThemedView>
@@ -311,7 +403,6 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
 
-  // header
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -336,7 +427,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // photo section
   photoSection: {
     alignItems: 'center',
     marginBottom: 24,
@@ -381,7 +471,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 
-  // dropdown sections
   inputGroup: {
     marginBottom: 20,
   },
@@ -464,6 +553,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     backgroundColor: '#ff6aa2',
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
   },
   saveButtonText: {
     color: 'white',
