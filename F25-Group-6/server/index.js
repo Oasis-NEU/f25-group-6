@@ -14,10 +14,10 @@ app.listen(PORT, () => {
 
 //response.send(status) is now a function that takes the JSON object as the argument.
 
-app.get(“/status”, (request, response) => {
-   const status = {
-      “Status”: “Running”
-   };
-   
-   response.send(status);
+app.get("/", (req, res) => { // create a GET endpoint at `/`
+  res.send("Hello World!"); // return value of the endpoint
+});
+
+app.listen(port, () => { // listen for the port specified above
+  console.log(`API listening on port ${port}`); // print a success message to the terminal
 });
