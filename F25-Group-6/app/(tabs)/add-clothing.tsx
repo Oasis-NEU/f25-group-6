@@ -1,10 +1,10 @@
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Image,
   Platform,
-  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,10 +13,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import * as ImagePicker from 'expo-image-picker'; 
-import * as FileSystem from 'expo-file-system';
-import * as Select from '@rn-primitives/select';
 import type { TriggerRef } from '@rn-primitives/select';
+import * as Select from '@rn-primitives/select';
+import * as ImagePicker from 'expo-image-picker';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -198,20 +197,9 @@ export default function AddClothingScreen() {
       >
         {/* HEADER ROW */}
         <View style={styles.headerRow}>
-          <Pressable
-            style={styles.backButton}
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-          >
-            <Text style={styles.backButtonText}>←</Text>
-          </Pressable>
-
           <ThemedText type="title" style={styles.title}>
             Add Clothing Item
           </ThemedText>
-
-          <View style={{ width: 32 }} />
         </View>
 
         {/* PHOTO AREA */}
@@ -240,7 +228,7 @@ export default function AddClothingScreen() {
 
         {/* What is it? */}
         <View style={styles.inputGroup}>
-          <ThemedText style={styles.label}>Item</ThemedText>
+          <ThemedText style={styles.label}>What's the item? 👕</ThemedText>
           <Select.Root value={type} onValueChange={setType}>
             <Select.Trigger
               ref={typeRef}
@@ -286,7 +274,7 @@ export default function AddClothingScreen() {
 
         {/* Color */}
         <View style={styles.inputGroup}>
-          <ThemedText style={styles.label}>Color</ThemedText>
+          <ThemedText style={styles.label}>What color is it? 🎨</ThemedText>
           <Select.Root value={color} onValueChange={setColor}>
             <Select.Trigger
               ref={colorRef}
@@ -332,7 +320,7 @@ export default function AddClothingScreen() {
 
         {/* Vibe */}
         <View style={styles.inputGroup}>
-          <ThemedText style={styles.label}>What's the vibe?</ThemedText>
+          <ThemedText style={styles.label}>What's the vibe? ✨</ThemedText>
           <Select.Root value={vibe} onValueChange={setVibe}>
             <Select.Trigger
               ref={vibeRef}
@@ -377,14 +365,14 @@ export default function AddClothingScreen() {
         </View>
 
         <Pressable 
-          style={[styles.saveButton, isSaving && styles.saveButtonDisabled]} 
+          style={[styles.addButton, isSaving && styles.addButtonDisabled]} 
           onPress={save}
           disabled={isSaving}
         >
           {isSaving ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.saveButtonText}>Add to Closet</Text>
+            <Text style={styles.addButtonText}>💃 Add to Closet</Text>
           )}
         </Pressable>
       </ScrollView>
@@ -406,23 +394,11 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
-    justifyContent: 'space-between',
-  },
-  backButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: '#eee',
-    alignItems: 'center',
     justifyContent: 'center',
-  },
-  backButtonText: {
-    fontSize: 18,
-    fontWeight: '600',
+    marginBottom: 24,
   },
   title: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -475,7 +451,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   label: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     marginBottom: 8,
   },
@@ -546,20 +522,19 @@ const styles = StyleSheet.create({
   indicator: {
     marginLeft: 8,
   },
-
-  saveButton: {
-    marginTop: 12,
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    backgroundColor: '#ff6aa2',
+  addButton: {
+  marginTop: 32,
+  paddingVertical: 16,
+  borderRadius: 12,
+  alignItems: 'center',
+  backgroundColor: '#F283B6', // same as Generate Outfit
   },
-  saveButtonDisabled: {
+  addButtonDisabled: {
     opacity: 0.6,
   },
-  saveButtonText: {
+  addButtonText: {
     color: 'white',
-    fontWeight: '600',
-    fontSize: 16,
+    fontWeight: '700',
+    fontSize: 18,
   },
 });
