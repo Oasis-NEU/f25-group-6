@@ -11,7 +11,9 @@ export default function SavedOutfitsScreen() {
       <Stack.Screen options={{ title: 'Saved Outfits' }} />
       <SafeAreaView style={[styles.container, {backgroundColor: '#FFFFFF'}]} edges={['top', 'left', 'right']}>
         <ThemedView>
-          <ThemedText type="title">Your Saved Outfits</ThemedText>
+          <ThemedText type="title" style={styles.title}>
+            Your Saved Outfits
+            </ThemedText>
           {/* Add outfit list here */}
 
     <View style={styles.imageContainer}>
@@ -40,5 +42,11 @@ const styles = StyleSheet.create({
   justifyContent: 'center',
   gap: 16,
   marginTop: 16,
+},
+title: {
+  fontSize: 24,
+  fontWeight: '600',
+  marginBottom: 32,
+  textAlign: 'center',
 },
 });
