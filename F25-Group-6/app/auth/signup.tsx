@@ -4,6 +4,7 @@ import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { supabase } from '@/lib/supabase';
 
 export default function SignUpScreen() {
   const router = useRouter();
@@ -13,7 +14,7 @@ export default function SignUpScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   // the sign up logic
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
     if (!email || !password || !confirmPassword) {
       alert('Please fill in all fields.');
       return;
@@ -24,6 +25,13 @@ export default function SignUpScreen() {
     }
 
     alert('Sign-up pressed! (Supabase logic not yet connected)');
+
+    let { data, error } = await supabase.auth.signUp({
+      email: email,
+      password: password
+    })
+    console.log('Data: ' + data + ' Error: ' + error)
+
   };
 
   return (
