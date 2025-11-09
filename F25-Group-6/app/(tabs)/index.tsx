@@ -1,26 +1,28 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
-import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
+
 
 export default function HomeScreen() {
   const router = useRouter();
 
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{light: '#F283B6', dark: '#E06C9F' }}
+      headerBackgroundColor={{light: '#E06C9F', dark: '#E06C9F' }}
       headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('@/assets/images/logo.png')}
+            style={styles.logo}
+          />
+        </View>
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome to Dress Yourself!</ThemedText>
+        <ThemedText type="title">Welcome to Dress Yourself!✨</ThemedText>
       </ThemedView>
 
        {/* Adding Clothing Item Button */}
@@ -28,7 +30,7 @@ export default function HomeScreen() {
         style={styles.addButton}
         onPress={() => router.push('/add-clothing')}
       >
-        <ThemedText style={styles.addButtonText}>+ Add clothing item</ThemedText>
+        <ThemedText style={styles.addButtonText}>👕 Add clothing item</ThemedText>
       </TouchableOpacity>
 
       {/* View Saved Outfits Button */}
@@ -47,14 +49,25 @@ export default function HomeScreen() {
         <ThemedText style={styles.generateButtonText}>✨ Generate New Outfit!</ThemedText>
       </TouchableOpacity>
 
-
-
-
     </ParallaxScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+    logoContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#E06C9F',
+    marginTop: 40,
+  },
+  logo: {
+    width: 280,
+    height: 280, 
+    resizeMode: 'cover',
+    borderRadius: 200,
+    overflow: 'hidden',
+  },
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
