@@ -9,7 +9,7 @@ export default function LoginScreen() {
   const router = useRouter();
 
   // form fields
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   return (
@@ -23,10 +23,10 @@ export default function LoginScreen() {
 
           <TextInput
             style={styles.input}
-            placeholder="Phone number"
-            keyboardType="phone-pad"
-            value={phone}
-            onChangeText={setPhone}
+            placeholder="Email"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
           />
           <TextInput
             style={styles.input}

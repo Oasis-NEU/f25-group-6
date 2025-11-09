@@ -8,13 +8,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function SignUpScreen() {
   const router = useRouter();
 
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
   // the sign up logic
   const handleSignUp = () => {
-    if (!phone || !password || !confirmPassword) {
+    if (!email || !password || !confirmPassword) {
       alert('Please fill in all fields.');
       return;
     }
@@ -37,10 +37,10 @@ export default function SignUpScreen() {
 
           <TextInput
             style={styles.input}
-            placeholder="Phone number"
-            keyboardType="phone-pad"
-            value={phone}
-            onChangeText={setPhone}
+            placeholder="Email"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
           />
           <TextInput
             style={styles.input}
