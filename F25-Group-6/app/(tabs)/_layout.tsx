@@ -1,13 +1,38 @@
+import { supabase } from '@/lib/supabase';
 import { Tabs } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useRouter } from 'expo-router';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        // No user logged in → go to signup
+        router.replace('/auth/signup');
+      }
+
+      setLoading(false);
+    };
+
+    checkSession();
+  }, []);
+
+  // While checking session, don't render tabs yet
+  if (loading) return null;
+
   return (
     <Tabs
       screenOptions={{
@@ -45,8 +70,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="generate-outfit"
         options={{
-          title: 'Generate Outfit',      // header title
-          tabBarLabel: 'Generate Outfit', // bottom tab label
+          title: 'Generate Outfit',
+          tabBarLabel: 'Generate Outfit',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="wand.and.stars" color={color} />,
         }}
       />
