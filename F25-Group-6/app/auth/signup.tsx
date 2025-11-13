@@ -37,7 +37,6 @@ export default function SignUpScreen() {
     }
 
     console.log('Sign-up successful:', data);
-    alert('Sign-up successful! Please check your email to verify your account.');
     router.push('/auth/login'); // or wherever you want to redirect
   } catch (err) {
     console.error('Unexpected error:', err);
