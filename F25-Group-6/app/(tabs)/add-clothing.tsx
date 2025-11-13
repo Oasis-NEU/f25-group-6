@@ -101,93 +101,113 @@ export default function AddClothingScreen() {
   };
 
   // Helper function to upload photo to Supabase Storage
-  const uploadPhoto = async (uri: string): Promise<string> => {
-    // Get user id
-    const { data: { user }, error: uErr } = await supabase.auth.getUser()
-    if (uErr || !user) throw new Error('Not authenticated')
+const uploadPhoto = async (uri: string): Promise<string> => {
+  // Get user id
+  const { data: { user }, error: uErr } = await supabase.auth.getUser()
+  if (uErr || !user) throw new Error('Not authenticated')
+
+  // Read the file as ArrayBuffer
+  const response = await fetch(uri);
+  const arrayBuffer = await response.arrayBuffer();
+  const fileBuffer = new Uint8Array(arrayBuffer);
+
+  // Upload to Storage
+  const fileName = `${Date.now()}.jpg`
+  const path = `${user.id}/${fileName}`
+
+  const { error: upErr } = await supabase
+    .storage
+    .from('clothing-images')   
+    .upload(path, fileBuffer, { 
+      contentType: 'image/jpeg', 
+      upsert: false 
+    })
+
+  if (upErr) throw upErr
+
+  // Get the public URL
+  const { data } = supabase.storage
+    .from('clothing-images')  
+    .getPublicUrl(path)
+    
+  return data.publicUrl
+}
+
   
-    // Turn the local file into a Blob
-    const res = await fetch(uri)
-    const blob = await res.blob() 
-  
-    // Upload to Storage (bucket name must exist in Supabase)
-    const fileName = `${Date.now()}.jpg`
-    const path = `${user.id}/${fileName}`
-  
-    const { error: upErr } = await supabase
-      .storage
-      .from('clothing-photos')   // In this bucket
-      .upload(path, blob, { contentType: 'image/jpeg', upsert: false })
-  
-    if (upErr) throw upErr
-  
-    // Get a public URL (or use signed URLs if bucket is private)
-    const { data } = supabase.storage.from('clothing-photos').getPublicUrl(path)
-    return data.publicUrl
-  }
 
   const save = async () => {
-    if (!photoUri) {
-      Alert.alert('Missing photo', 'Please take a picture of the item.');
-      return;
-    }
-    if (!type || !color || !vibe) {
-      Alert.alert('Missing info', 'Please select all options.');
-      return;
-    }
+  if (!photoUri) {
+    Alert.alert('Missing photo', 'Please take a picture of the item.');
+    return;
+  }
+  if (!type || !color || !vibe) {
+    Alert.alert('Missing info', 'Please select all options.');
+    return;
+  }
 
-    setIsSaving(true);
+  setIsSaving(true);
 
-    try {
-      // Upload photo to Supabase Storage
-      console.log('Uploading photo from:', photoUri);
-      const photoUrl = await uploadPhoto(photoUri);
-      console.log('Photo uploaded successfully:', photoUrl);
-      
-      //Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-      
-      // Save item metadata and photo URL to database
-      const { data, error } = await supabase
-        .from('clothing_items')
-        .insert({
-          user_id: user.id,
-          type: type.value,
-          type_label: type.label,
-          color: color.value,
-          color_label: color.label,
-          vibe: vibe.value,
-          vibe_label: vibe.label,
-          photo_url: photoUrl,
-        })
-        .select()
-        .single();
-        
-      if (error) {
-        console.error('Database error:', error);
-        throw error;
-      }
-      
-      console.log('Item saved to database:', data);
-      
-      // Shows its been added
-      Alert.alert(
-        'Added to Closet!',
-        `Saved:\n${type.label} · ${color.label} · ${vibe.label}`,
-        [{ text: 'OK', onPress: () => router.back() }]
-      );
-      
-    } catch (error) {
-      console.error('Error saving item:', error);
-      Alert.alert(
-        'Error', 
-        'Failed to save item. Please check your connection and try again.'
-      );
-    } finally {
-      setIsSaving(false);
+  try {
+    // Get current user FIRST and verify they're authenticated
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      console.error('Auth error:', userError);
+      throw new Error('You must be logged in to add items');
     }
-  };
+    
+    console.log('Authenticated user:', user.id);
+    
+    // Upload photo to Supabase Storage
+    console.log('Uploading photo from:', photoUri);
+    const photoUrl = await uploadPhoto(photoUri);
+    console.log('Photo uploaded successfully:', photoUrl);
+    
+    // Save item metadata and photo URL to database
+    const insertData = {
+      user_id: user.id,
+      type: type.value,
+      type_label: type.label,
+      color: color.value,
+      color_label: color.label,
+      vibe: vibe.value,
+      vibe_label: vibe.label,
+      photo_url: photoUrl,
+    };
+    
+    console.log('Inserting data:', insertData);
+    
+    const { data, error } = await supabase
+      .from('clothing_items')
+      .insert(insertData)
+      .select()
+      .single();
+      
+    if (error) {
+      console.error('Database error:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      throw error;
+    }
+    
+    console.log('Item saved to database:', data);
+    
+    // Shows its been added
+    Alert.alert(
+      'Added to Closet!',
+      `Saved:\n${type.label} · ${color.label} · ${vibe.label}`,
+      [{ text: 'OK', onPress: () => router.back() }]
+    );
+    
+  } catch (error: any) {
+    console.error('Error saving item:', error);
+    Alert.alert(
+      'Error', 
+      error.message || 'Failed to save item. Please check your connection and try again.'
+    );
+  } finally {
+    setIsSaving(false);
+  }
+};
 
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
