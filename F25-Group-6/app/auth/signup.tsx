@@ -15,24 +15,34 @@ export default function SignUpScreen() {
 
   // the sign up logic
   const handleSignUp = async () => {
-    if (!email || !password || !confirmPassword) {
-      alert('Please fill in all fields.');
-      return;
-    }
-    if (password !== confirmPassword) {
-      alert('Passwords do not match.');
-      return;
-    }
+  if (!email || !password || !confirmPassword) {
+    alert('Please fill in all fields.');
+    return;
+  }
+  if (password !== confirmPassword) {
+    alert('Passwords do not match.');
+    return;
+  }
 
-    alert('Sign-up pressed! (Supabase logic not yet connected)');
-
-    let { data, error } = await supabase.auth.signUp({
+  try {
+    const { data, error } = await supabase.auth.signUp({
       email: email,
       password: password
-    })
-    console.log('Data: ' + data + ' Error: ' + error)
+    });
 
-  };
+    if (error) {
+      alert(`Sign-up failed: ${error.message}`);
+      console.error('Error:', error);
+      return;
+    }
+
+    console.log('Sign-up successful:', data);
+    router.push('/auth/login'); // or wherever you want to redirect
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    alert('An unexpected error occurred.');
+  }
+};
 
   return (
     <>

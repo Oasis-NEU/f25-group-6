@@ -4,6 +4,7 @@ import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { supabase } from '@/lib/supabase';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -11,6 +12,34 @@ export default function LoginScreen() {
   // form fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // the login logic
+    const handleLogin = async () => {
+    if (!email || !password) {
+      alert('Please fill in all fields.');
+      return;
+    }
+  
+    try {
+      let { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password
+     })
+  
+      if (error) {
+        alert(`Sign-up failed: ${error.message}`);
+        console.error('Error:', error);
+        return;
+      }
+  
+      console.log('Login successful:', data);
+      // Redirect to your main app screen after successful login
+      router.replace('/(tabs)'); // Adjust this to your main screen route
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      alert('An unexpected error occurred.');
+    }
+  };
 
   return (
     <>
@@ -36,9 +65,9 @@ export default function LoginScreen() {
             onChangeText={setPassword}
           />
 
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity style={styles.button} onPress={handleLogin}>
             <Text style={styles.buttonText}>Log In</Text>
-            </TouchableOpacity>
+          </TouchableOpacity>
 
           <TouchableOpacity onPress={() => router.push('/auth/signup')}>
             <Text style={styles.linkText}>
