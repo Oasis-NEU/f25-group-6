@@ -178,7 +178,7 @@ const uploadPhoto = async (uri: string): Promise<string> => {
     console.log('Inserting data:', insertData);
     
     const { data, error } = await supabase
-      .from('clothing_items')
+      .from('clothing_item')
       .insert(insertData)
       .select()
       .single();
