@@ -1,5 +1,6 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useCloset } from '@/hooks/useCloset';
 import {
     Alert,
     Image,
@@ -34,12 +35,12 @@ type Outfit = {
 // Color compatibility matrix
 const colorCompatibility: Record<string, string[]> = {
   black: ['white', 'red', 'blue', 'green', 'pink', 'yellow', 'black'],
-  white: ['black', 'red', 'blue', 'green', 'pink', 'yellow'],
-  red: ['black', 'white', 'blue'],
-  blue: ['white', 'black', 'red', 'yellow'],
-  green: ['black', 'white', 'yellow'],
-  pink: ['black', 'white', 'blue'],
-  yellow: ['black', 'white', 'blue', 'green'],
+  white: ['black', 'red', 'blue', 'green', 'pink', 'yellow', 'white'],
+  red: ['black', 'white', 'blue', 'red'],
+  blue: ['white', 'black', 'red', 'yellow', 'blue'],
+  green: ['black', 'white', 'yellow', 'green'],
+  pink: ['black', 'white', 'blue', 'pink'],
+  yellow: ['black', 'white', 'blue', 'green', 'yellow'],
 };
 
 // Helper function to check if colors match
@@ -50,10 +51,12 @@ function colorsMatch(color1: string, color2: string): boolean {
 // Helper function to check if all colors in outfit match
 function outfitColorsMatch(items: ClothingItem[]): boolean {
   if (items.length <= 1) return true;
-  
+
   for (let i = 0; i < items.length - 1; i++) {
     for (let j = i + 1; j < items.length; j++) {
-      if (!colorsMatch(items[i].color, items[j].color)) {
+        const match = colorsMatch(items[i].color, items[j].color);
+        console.log(`Checking ${items[i].color} vs ${items[j].color}: ${match}`);
+      if (!match) {
         return false;
       }
     }
@@ -72,28 +75,40 @@ export default function GeneratedOutfitScreen() {
   const [outfit, setOutfit] = useState<Outfit | null>(null);
   const [availableItems, setAvailableItems] = useState<ClothingItem[]>([]);
 
-  // TODO: Replace with actual data from your closet store
-  // For now, using mock data
-  const mockClosetItems: ClothingItem[] = [
-    // Add your actual closet items here
-  ];
+  const { items: closetItems, loading } = useCloset();
+
 
   useEffect(() => {
-    setAvailableItems(mockClosetItems);
+      console.log('closet items loaded: ', closetItems);
+      console.log('number of items: ', closetItems.length);
+      console.log('selected vibe: ', selectedVibe);
+    setAvailableItems(closetItems);
+    //generateOutfit();
+  }, [loading, closetItems]);
+
+useEffect(() => {
+  console.log('Available items updated:', availableItems);
+
+  if (availableItems.length > 0) {
     generateOutfit();
-  }, []);
+  }
+}, [availableItems]);
 
   const needsJacket = (weather: string): boolean => {
     return ['rainy', 'windy', 'cold', 'snowy'].includes(weather.toLowerCase());
   };
 
   const generateOutfit = () => {
+      console.log('available items: ', availableItems);
+      console.log('selected vibe:', selectedVibe);
     const jacketRequired = needsJacket(selectedWeather);
-    
+
     // Filter items by vibe
     const vibeMatchedItems = availableItems.filter(
       item => item.vibe === selectedVibe
     );
+console.log('Vibe matched items:', vibeMatchedItems);
+  console.log('Matched count:', vibeMatchedItems.length);
 
     if (vibeMatchedItems.length === 0) {
       Alert.alert(
@@ -113,6 +128,16 @@ export default function GeneratedOutfitScreen() {
     const dresses = vibeMatchedItems.filter(item => item.type === 'dress');
     const jackets = vibeMatchedItems.filter(item => item.type === 'jacket');
     const shoes = vibeMatchedItems.filter(item => item.type === 'shoes');
+
+    console.log('Separated items:', {
+      tshirts: tshirts.length,
+      jeans: jeans.length,
+      dresses: dresses.length,
+      jackets: jackets.length,
+      shoes: shoes.length
+    });
+
+    console.log('Jacket required?', jacketRequired);
 
     // Check if jacket is required but not available
     if (jacketRequired && jackets.length === 0) {
@@ -137,6 +162,7 @@ export default function GeneratedOutfitScreen() {
 
       // Decide: dress or separates?
       const useDress = dresses.length > 0 && Math.random() > 0.5;
+      console.log(`Attempt ${attempts}: useDress=${useDress}`);
 
       if (useDress) {
         // Dress outfit: dress + optional jacket + shoes
@@ -147,28 +173,37 @@ export default function GeneratedOutfitScreen() {
           : undefined;
 
         const items = [dress, shoe, jacket].filter(Boolean) as ClothingItem[];
-        
+
         if (outfitColorsMatch(items)) {
           generatedOutfit = { dress, shoes: shoe, jacket };
         }
       } else {
         // Separates: tshirt + jeans + optional jacket + shoes
         if (tshirts.length === 0 || jeans.length === 0) {
+            console.log('Skipping - missing tshirt or jeans');
           continue; // Can't make separates outfit
         }
 
         const tshirt = tshirts[Math.floor(Math.random() * tshirts.length)];
         const jean = jeans[Math.floor(Math.random() * jeans.length)];
         const shoe = shoes.length > 0 ? shoes[Math.floor(Math.random() * shoes.length)] : undefined;
+          console.log('Testing outfit:', {
+              tshirt: tshirt.color,
+              jean: jean.color,
+              shoe: shoe?.color
+            });
+
         const jacket = jacketRequired && jackets.length > 0
           ? jackets[Math.floor(Math.random() * jackets.length)]
           : undefined;
 
         const items = [tshirt, jean, shoe, jacket].filter(Boolean) as ClothingItem[];
-        
+
         if (outfitColorsMatch(items)) {
+            console.log('Colors match!');
           generatedOutfit = { top: tshirt, bottom: jean, shoes: shoe, jacket };
-        }
+        } else {
+             console.log('Colors dont match');}
       }
     }
 
@@ -195,7 +230,7 @@ export default function GeneratedOutfitScreen() {
 
   const saveOutfit = () => {
     if (!outfit) return;
-    
+
     Alert.alert(
       'Outfit Saved!',
       'Your outfit has been saved to your collection.',
@@ -228,7 +263,7 @@ export default function GeneratedOutfitScreen() {
           <ThemedText type="title" style={styles.title}>
             Your {selectedVibe} Outfit
           </ThemedText>
-          
+
           <ThemedText style={styles.subtitle}>
             Perfect for {selectedWeather} weather! ☀️
           </ThemedText>
